@@ -1,6 +1,6 @@
 #  coding: utf-8 
 import socketserver
-
+import os
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,10 +29,73 @@ import socketserver
 
 class MyWebServer(socketserver.BaseRequestHandler):
     
+
+    
     def handle(self):
-        self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+
+        #Status reponse that needed
+        NotAllowed405 = 'HTTP/1.1 405 Method Not Allowed\r\n'
+        NotFound404 = 'HTTP/1.1 404 Not Found\r\n'
+        Moved301 = 'HTTP/1.1 301 Moved Permanently\r\n'
+        OK200 = 'HTTP/1.1 200 OK\r\n'
+        
+        #get GET header response
+        self.data = self.request.recv(1024).strip().decode('utf-8')
+
+        urlPath = self.getPath()
+
+        if urlPath[-1] == '/':
+            urlPath+='index.html'
+
+        # content = self.readFile(path)
+
+        #Status 405
+        if self.isGet():
+            
+            if self.isHTML(urlPath):
+                self.request.sendall(bytearray(OK200,'utf-8'))
+                content = self.readFile(urlPath)
+                self.request.sendall(b'Content-Type: text/html\r\n\r\n')
+                self.request.sendall(content)
+                            
+            elif self.isCss(urlPath):
+                self.request.sendall(bytearray(OK200,'utf-8'))
+                content = self.readFile(urlPath)
+                self.request.sendall(b'Content-Type: text/css\r\n\r\n')
+                self.request.sendall(content)
+
+        else:
+            #Only deal with GET, if there are POST/PUT/DELETE, return Status Code 405
+            self.request.sendall(bytearray(NotAllowed405),'utf-8')
+
+    def isGet(self):
+        """
+        Return True if the header is GET, if the header is POST/PUT/DELETE, it returns False
+        """
+        return self.data.split()[0] == 'GET'
+
+    def getPath(self):
+        """
+        get the path that need to view
+        """
+        path = self.data.split()[1]
+        return path
+
+    def readFile(self, path):
+        """
+        Return the content of the file as format of byte
+        """
+        with open('./www'+path,'r') as file:
+            content = file.read()
+        return bytearray(content,'utf-8')
+
+    def isHTML(self,path):
+        return path.endswith('.html')
+
+    def isCss(self, path):
+        return path.endswith('.css')
+
+    
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
