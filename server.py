@@ -1,6 +1,9 @@
 #  coding: utf-8 
+from genericpath import isfile
 import socketserver
 import os
+
+from numpy import byte
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,17 +55,24 @@ class MyWebServer(socketserver.BaseRequestHandler):
         #Status 405
         if self.isGet():
             
-            if self.isHTML(urlPath):
-                self.request.sendall(bytearray(OK200,'utf-8'))
-                content = self.readFile(urlPath)
-                self.request.sendall(b'Content-Type: text/html\r\n\r\n')
-                self.request.sendall(content)
-                            
-            elif self.isCss(urlPath):
-                self.request.sendall(bytearray(OK200,'utf-8'))
-                content = self.readFile(urlPath)
-                self.request.sendall(b'Content-Type: text/css\r\n\r\n')
-                self.request.sendall(content)
+            #Status 301
+                #self.correctPath301(urlPath)
+
+            #Status 404
+            if self.isValidPath(urlPath):
+                if self.isHTML(urlPath):
+                    self.request.sendall(bytearray(OK200,'utf-8'))
+                    content = self.readFile(urlPath)
+                    self.request.sendall(b'Content-Type: text/html\r\n\r\n')
+                    self.request.sendall(content)
+                                    
+                elif self.isCss(urlPath):
+                    self.request.sendall(bytearray(OK200,'utf-8'))
+                    content = self.readFile(urlPath)
+                    self.request.sendall(b'Content-Type: text/css\r\n\r\n')
+                    self.request.sendall(content)
+            else:
+                self.request.sendall(bytearray(NotFound404,'utf-8'))
 
         else:
             #Only deal with GET, if there are POST/PUT/DELETE, return Status Code 405
@@ -79,24 +89,39 @@ class MyWebServer(socketserver.BaseRequestHandler):
         get the path that need to view
         """
         path = self.data.split()[1]
-        return path
+        return './www'+path
 
     def readFile(self, path):
         """
         Return the content of the file as format of byte
+        So meet error that try to open a non-exist file, it send status 404
         """
-        with open('./www'+path,'r') as file:
+        NotFound404 = 'HTTP/1.1 404 Not Found\r\n'
+        
+        with open(path,'r') as file:
             content = file.read()
-        return bytearray(content,'utf-8')
 
+        return bytearray(content,'utf-8')
+    
+    def isValidPath(self,pth):
+        """
+        https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
+        """
+        return os.path.exists(pth)
+        
     def isHTML(self,path):
         return path.endswith('.html')
 
     def isCss(self, path):
         return path.endswith('.css')
 
-    
+    def correctPath301(self,pth):
+        Moved301 = 'HTTP/1.1 301 Moved Permanently\r\n'
+        
+        if pth[-1] != '/':
+            self.request.sendall(bytearray(Moved301,'utf-8'))
 
+    
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
 
