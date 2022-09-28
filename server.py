@@ -47,19 +47,19 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         urlPath = self.getPath()
 
-        if urlPath[-1] == '/':
-            urlPath+='index.html'
+        try:
+            if urlPath[-1] == '/':
+                urlPath+='index.html'
+        except TypeError:
+            pass
 
-        # content = self.readFile(path)
 
         #Status 405
         if self.isGet():
-            
-            #Status 301
-                #self.correctPath301(urlPath)
 
             #Status 404
             if self.isValidPath(urlPath):
+
                 if self.isHTML(urlPath):
                     self.request.sendall(bytearray(OK200,'utf-8'))
                     content = self.readFile(urlPath)
@@ -88,8 +88,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
         """
         get the path that need to view
         """
-        path = self.data.split()[1]
-        return './www'+path
+        try:
+            path = self.data.split()[1]
+            return './www'+path
+        except IndexError:
+            pass
 
     def readFile(self, path):
         """
@@ -120,7 +123,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         if pth[-1] != '/':
             self.request.sendall(bytearray(Moved301,'utf-8'))
+            pth+='/'
 
+        return pth
     
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
