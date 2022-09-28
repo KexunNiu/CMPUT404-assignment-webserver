@@ -2,8 +2,6 @@
 from genericpath import isfile
 import socketserver
 import os
-
-from numpy import byte
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,19 +45,19 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         urlPath = self.getPath()
 
-        try:
-            if urlPath[-1] == '/':
-                urlPath+='index.html'
-        except TypeError:
-            pass
+        if urlPath[-1] == '/':
+            urlPath+='index.html'
 
+        # content = self.readFile(path)
 
         #Status 405
         if self.isGet():
+            
+            #Status 301
+                #self.correctPath301(urlPath)
 
             #Status 404
             if self.isValidPath(urlPath):
-
                 if self.isHTML(urlPath):
                     self.request.sendall(bytearray(OK200,'utf-8'))
                     content = self.readFile(urlPath)
@@ -76,7 +74,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         else:
             #Only deal with GET, if there are POST/PUT/DELETE, return Status Code 405
-            self.request.sendall(bytearray(NotAllowed405),'utf-8')
+            self.request.sendall(bytearray(NotAllowed405,'utf-8'))
 
     def isGet(self):
         """
@@ -88,11 +86,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
         """
         get the path that need to view
         """
-        try:
-            path = self.data.split()[1]
-            return './www'+path
-        except IndexError:
-            pass
+        path = self.data.split()[1]
+        return './www'+path
 
     def readFile(self, path):
         """
@@ -123,9 +118,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         if pth[-1] != '/':
             self.request.sendall(bytearray(Moved301,'utf-8'))
-            pth+='/'
 
-        return pth
     
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
