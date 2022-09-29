@@ -35,8 +35,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def handle(self):
 
         #Status reponse that needed
-        NotAllowed405 = 'HTTP/1.1 405 Method Not Allowed\r\n'
-        NotFound404 = 'HTTP/1.1 404 Not Found\r\n'
+        NotAllowed405 = 'HTTP/1.1 405 Method Not Allowed\r\n\r\n'
+        NotFound404 = 'HTTP/1.1 404 Not Found\r\n\r\n'
         Moved301 = 'HTTP/1.1 301 Moved Permanently\r\n'
         OK200 = 'HTTP/1.1 200 OK\r\n'
         
@@ -45,36 +45,59 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         urlPath = self.getPath()
 
+        # if self.isDir(urlPath):
+        #     urlPath+='index.html'
+        # else:
+        #     isSend301 = True
+        #     urlPath+='/'
+
+        # if urlPath[-1] =='/':
+        #     urlPath+='index.html'
+        
+
         if urlPath[-1] == '/':
             urlPath+='index.html'
 
-        # content = self.readFile(path)
-
         #Status 405
         if self.isGet():
-            
-            #Status 301
-                #self.correctPath301(urlPath)
 
-            #Status 404
-            if self.isValidPath(urlPath):
-                if self.isHTML(urlPath):
-                    self.request.sendall(bytearray(OK200,'utf-8'))
-                    content = self.readFile(urlPath)
-                    self.request.sendall(b'Content-Type: text/html\r\n\r\n')
-                    self.request.sendall(content)
-                                    
-                elif self.isCss(urlPath):
-                    self.request.sendall(bytearray(OK200,'utf-8'))
-                    content = self.readFile(urlPath)
-                    self.request.sendall(b'Content-Type: text/css\r\n\r\n')
-                    self.request.sendall(content)
-            else:
-                self.request.sendall(bytearray(NotFound404,'utf-8'))
+            try:
+                #Status 404
+                if self.isValidPath(urlPath):
 
+                    if self.isHTML(urlPath):
+                        # self.request.sendall(bytearray(Moved301,'utf-8'))
+
+                        self.request.sendall(bytearray(OK200,'utf-8'))
+                        content = self.readFile(urlPath)
+                        self.request.sendall(b'Content-Type: text/html\r\n\r\n')
+                        self.request.sendall(content)
+                                        
+                    elif self.isCss(urlPath):
+                        self.request.sendall(bytearray(OK200,'utf-8'))
+                        content = self.readFile(urlPath)
+                        self.request.sendall(b'Content-Type: text/css\r\n\r\n')
+                        self.request.sendall(content)
+
+                    else:
+                        error = '301'
+                        response = "HTTP/1.1 301 Moved\r\nContent-Type: text/plain\r\n\r\n{0}".format(error)
+                        self.request.sendall(response.encode())
+
+                else:
+                    self.request.sendall(bytearray(NotFound404,'utf-8'))
+
+            except IsADirectoryError:
+                print("111111111111")
+                
+             
         else:
             #Only deal with GET, if there are POST/PUT/DELETE, return Status Code 405
             self.request.sendall(bytearray(NotAllowed405,'utf-8'))
+
+    def isDir(self,path):
+        return path.endswith('/')
+
 
     def isGet(self):
         """
@@ -117,7 +140,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
         Moved301 = 'HTTP/1.1 301 Moved Permanently\r\n'
         
         if pth[-1] != '/':
+            pth+='/'
             self.request.sendall(bytearray(Moved301,'utf-8'))
+            return (pth, False)
+        
+        return (pth,True)
 
     
 if __name__ == "__main__":
