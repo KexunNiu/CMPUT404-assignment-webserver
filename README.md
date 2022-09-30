@@ -24,3 +24,21 @@ examples thus some of the code is Copyright © 2001-2013 Python
 Software Foundation; All Rights Reserved under the PSF license (GPL
 compatible) http://docs.python.org/2/library/socketserver.html
 
+Collaborators
+=============
+CCID    Name
+kil1    Ke Li
+wcao4   Wenhao Cao
+
+We only discussed orally, and we never seen each others' work.
+
+References
+==========
+   301 Moved Header:    https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301
+Check is a path exists: https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
+    endswith method:    https://www.tutorialspoint.com/python/string_endswith.htm
+
+
+
+
+
