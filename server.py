@@ -45,59 +45,38 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         urlPath = self.getPath()
 
-        # if self.isDir(urlPath):
-        #     urlPath+='index.html'
-        # else:
-        #     isSend301 = True
-        #     urlPath+='/'
-
-        # if urlPath[-1] =='/':
-        #     urlPath+='index.html'
-        
-
         if urlPath[-1] == '/':
             urlPath+='index.html'
 
         #Status 405
         if self.isGet():
 
-            try:
-                #Status 404
-                if self.isValidPath(urlPath):
+            #Status 404
+            if self.isValidPath('./www'+urlPath):
 
-                    if self.isHTML(urlPath):
-                        # self.request.sendall(bytearray(Moved301,'utf-8'))
+                if self.isHTML(urlPath):
 
-                        self.request.sendall(bytearray(OK200,'utf-8'))
-                        content = self.readFile(urlPath)
-                        self.request.sendall(b'Content-Type: text/html\r\n\r\n')
-                        self.request.sendall(content)
-                                        
-                    elif self.isCss(urlPath):
-                        self.request.sendall(bytearray(OK200,'utf-8'))
-                        content = self.readFile(urlPath)
-                        self.request.sendall(b'Content-Type: text/css\r\n\r\n')
-                        self.request.sendall(content)
-
-                    else:
-                        error = '301'
-                        response = "HTTP/1.1 301 Moved\r\nContent-Type: text/plain\r\n\r\n{0}".format(error)
-                        self.request.sendall(response.encode())
+                    self.request.sendall(bytearray(OK200,'utf-8'))
+                    content = self.readFile(urlPath)
+                    self.request.sendall(b'Content-Type: text/html\r\n\r\n')
+                    self.request.sendall(content)
+                                    
+                elif self.isCss(urlPath):
+                    self.request.sendall(bytearray(OK200,'utf-8'))
+                    content = self.readFile(urlPath)
+                    self.request.sendall(b'Content-Type: text/css\r\n\r\n')
+                    self.request.sendall(content)
 
                 else:
-                    self.request.sendall(bytearray(NotFound404,'utf-8'))
+                    urlPath += '/'
+                    self.request.sendall(bytearray(Moved301+"Content-Type: text/plain\r\nLocation: {0}\r\n\r\n".format(urlPath),"utf-8"))
 
-            except IsADirectoryError:
-                print("111111111111")
-                
-             
+            else:
+                self.request.sendall(bytearray(NotFound404,'utf-8'))
+
         else:
             #Only deal with GET, if there are POST/PUT/DELETE, return Status Code 405
             self.request.sendall(bytearray(NotAllowed405,'utf-8'))
-
-    def isDir(self,path):
-        return path.endswith('/')
-
 
     def isGet(self):
         """
@@ -110,7 +89,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         get the path that need to view
         """
         path = self.data.split()[1]
-        return './www'+path
+        return path
 
     def readFile(self, path):
         """
@@ -119,7 +98,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         """
         NotFound404 = 'HTTP/1.1 404 Not Found\r\n'
         
-        with open(path,'r') as file:
+        with open('./www'+ path,'r') as file:
             content = file.read()
 
         return bytearray(content,'utf-8')
@@ -129,22 +108,15 @@ class MyWebServer(socketserver.BaseRequestHandler):
         https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions
         """
         return os.path.exists(pth)
+
+    def isDir(self,path):
+        return path.endswith('/')
         
     def isHTML(self,path):
         return path.endswith('.html')
 
     def isCss(self, path):
         return path.endswith('.css')
-
-    def correctPath301(self,pth):
-        Moved301 = 'HTTP/1.1 301 Moved Permanently\r\n'
-        
-        if pth[-1] != '/':
-            pth+='/'
-            self.request.sendall(bytearray(Moved301,'utf-8'))
-            return (pth, False)
-        
-        return (pth,True)
 
     
 if __name__ == "__main__":
