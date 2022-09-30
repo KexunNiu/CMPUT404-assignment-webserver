@@ -26,17 +26,17 @@ compatible) http://docs.python.org/2/library/socketserver.html
 
 Collaborators
 =============
-* CCID    Name   
-* kil1    Ke Li  
-* wcao4   Wenhao Cao
+CCID    Name</br>
+kil1    Ke Li</br>
+wcao4   Wenhao Cao</br>
 
 We only discussed orally, and we never seen each others' work.
 
 References
 ==========
-* 301 Moved Header:       https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301 
-* Check is a path exists: https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions 
-* endswith method:        https://www.tutorialspoint.com/python/string_endswith.html 
+301 Moved Header:       https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301 </br>
+Check is a path exists: https://stackoverflow.com/questions/82831/how-do-i-check-whether-a-file-exists-without-exceptions </br>
+endswith method:        https://www.tutorialspoint.com/python/string_endswith.html </br>
 
 
 
